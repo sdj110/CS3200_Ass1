@@ -1,0 +1,38 @@
+Computer Science 3200
+Assignment 1 - BFS/DFS Grid-World Path-Finding
+
+Student(s): 
+
+Code Style / Modularity / Readability                           10/10 
+
+    - Code has consistent indenting
+    - Functions used where appropriate
+    - Assignment comments removed
+    - Student comments where explanation necessary
+    
+Data Structures                                                 10/10
+
+    - 'Queue' used for BFS, 'Stack' used for DFS
+
+Other Functions                                                 10/10
+
+    - startSearch properly sets up a new search
+    - isLegalAction works properly and used by search
+    - getOpen and getClosed implemented properly
+
+BFS Path-Finding                                                60/60
+
+    - All tests pass
+    - GUI properly interacts with BFS
+    - Code takes less than one second per path
+    - Visual inspection of BFS shows proper behavior
+
+DFS Path-Finding                                                10/10
+
+    - DFS Produces a path to goal
+    - GUI properly interacts with DFS
+    - Visual inspection of DFS shows proper behavior
+
+    
+Total Assignment Mark                                           100/100
+    

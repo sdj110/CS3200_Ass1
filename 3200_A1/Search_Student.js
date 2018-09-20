@@ -79,8 +79,7 @@ Search_Student = function (grid, config) {
         self.closed = [];
 
         self.startType = self.grid.get(sx, sy);
-        self.open.push(Node(sx, sy, [0 ,0], null));
-
+        self.open.push(Node(sx, sy, "tits", "ass"));
     }
 
     // Student TODO: Implement this function
@@ -128,9 +127,14 @@ Search_Student = function (grid, config) {
         // get current node from queue
         var node = self.open.shift();
 
+        console.log("here: " + node.parent); // this should print ass but prints tits??
+
+
         // Check if we found the goal node
         if (node.x == self.gx && node.y == self.gy) {
             self.cost = self.path.length * 100;
+
+
 
             self.inProgress = false;
             return;
@@ -143,11 +147,6 @@ Search_Student = function (grid, config) {
                 if (x == 0 && y == 0 || x != 0 && y != 0) { continue;}
 
                 let adjNode = Node(node.x + x, node.y + y, [x, y], node);
-
-
-                console.log("WHAT IS HAPPENING HERE???: ");
-                console.log(adjNode.parent[0] + ", " + adjNode.parent[1]);
-                console.log(adjNode.action.x);
 
                 if (self.isLegalAction(node.x + x, node.y + y, [x, y]))
                 {
@@ -205,7 +204,7 @@ Search_Student = function (grid, config) {
 
 // The Node class to be used in your search algorithm.
 // This should not need to be modified to complete the assignment
-Node = function(x, y, action, parent) {
+Node(x, y, action, parent) {
     self = {};
     self.x = x;
     self.y = y;

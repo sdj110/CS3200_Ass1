@@ -29,6 +29,7 @@ Search_Student = function (grid, config) {
     self.closed = [];           // the current closed list of the search
 
     self.startType = -1;
+    self.checkedList = [];
 
     // Student TODO: Implement this function
     //
@@ -45,12 +46,12 @@ Search_Student = function (grid, config) {
     //
     // Returns:
     //    bool : whether or not the given action is legal at the given location
-    self.isLegalAction = function (x, y, action) {
+    self.isLegalAction = function (x, y, action, node) {
         // Check that tile types match
         if (self.grid.isOOB(x, y, 1)) { return false; }
         if (self.grid.get(x, y) != self.startType) { return false; }
 
-        console.log(action[0] + " | " + action[1]);
+        // TODO: We need way to check if node has already been visited
 
         return true;
     }
@@ -74,16 +75,27 @@ Search_Student = function (grid, config) {
         self.inProgress = true;     // the search is now considered started
         self.sx = sx;               // set the x,y location of the start state
         self.sy = sy;
-        self.gx = gx;               // set the x,y location of the goal state
-        self.gy = gy;
+
         self.path = [];             // set an empty path
         self.open = [];
         self.closed = [];
 
+        // Here we set the start node. This has no tile type restrictions
         self.startType = self.grid.get(sx, sy);
         let startNode = NodeX(sx, sy, [0, 0], null)
+
+        // Do not set the goal if its not the same tile type as start
+        // TODO: There might be a better way to do this but right now
+        //       this has the same behaviour as solution.
+        if (self.grid.get(gx, gy) == self.startType)
+        {
+            self.gx = gx;
+            self.gy = gy;
+        }
+
         self.open.push(startNode);
 
+        self.checkedList.push(startNode);
     }
 
     // Student TODO: Implement this function
@@ -155,10 +167,10 @@ Search_Student = function (grid, config) {
                 // Skip middle
                 if (x == 0 && y == 0 || x != 0 && y != 0) { continue;}
 
-                adjNode = NodeX(node.x + x, node.y + y, [x, y], node);
-
-                if (self.isLegalAction(adjNode.x, adjNode.y, adjNode.action))
+                if (self.isLegalAction(node.x + x, node.y + y, [x, y]))
                 {
+                    adjNode = NodeX(node.x + x, node.y + y, [x, y], node);
+                    self.checkedList.push(adjNode);
                     self.open.push(adjNode);
                 }
             }

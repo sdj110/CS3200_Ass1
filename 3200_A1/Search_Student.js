@@ -1,11 +1,11 @@
 // Search_Student.js
 // Computer Science 3200 - Assignment 1
-// Author(s): David Churchill [replace with your name(s)]
-//
-// All of your Assignment 1 code should be in this file, it is the only file submitted
-// You may create additional functions / member variables within this class, but do not
-// rename any of the existing variables or function names, since they are used by the
-// GUI to perform specific functions.
+// Author(s): David Churchill, Trei Solis, Scott Jennings
+
+
+// CURRENT PROBELMS:
+// TODO: We need way to check if node has already been visited.
+
 Search_Student = function (grid, config) {
     var self = {};
 
@@ -50,8 +50,6 @@ Search_Student = function (grid, config) {
         // Check that tile types match
         if (self.grid.isOOB(x, y, 1)) { return false; }
         if (self.grid.get(x, y) != self.startType) { return false; }
-
-        // TODO: We need way to check if node has already been visited
 
         return true;
     }

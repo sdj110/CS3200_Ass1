@@ -50,10 +50,7 @@ Search_Student = function (grid, config) {
         if (self.grid.isOOB(x, y, 1)) { return false; }
         if (self.grid.get(x, y) != self.startType) { return false; }
 
-        if (!self.closed.filter(function(a){ return a.includes([x, y])}))
-        {
-            return false;
-        }
+        console.log(action[0] + " | " + action[1]);
 
         return true;
     }
@@ -84,10 +81,9 @@ Search_Student = function (grid, config) {
         self.closed = [];
 
         self.startType = self.grid.get(sx, sy);
-        let startNode = Node(sx, sy, null, null);
-        startNode.action = [0, 0]; // HACK: for some reason arguments are not getting set in constructor
-        startNode.parent = null;
+        let startNode = NodeX(sx, sy, [0, 0], null)
         self.open.push(startNode);
+
     }
 
     // Student TODO: Implement this function
@@ -159,11 +155,9 @@ Search_Student = function (grid, config) {
                 // Skip middle
                 if (x == 0 && y == 0 || x != 0 && y != 0) { continue;}
 
-                adjNode = Node(node.x + x, node.y + y, [x, y], node);
-                adjNode.action = [x, y]; //HACK: same as above
-                adjNode.parent = node;
+                adjNode = NodeX(node.x + x, node.y + y, [x, y], node);
 
-                if (self.isLegalAction(node.x + x, node.y + y, [x, y]))
+                if (self.isLegalAction(adjNode.x, adjNode.y, adjNode.action))
                 {
                     self.open.push(adjNode);
                 }
@@ -171,6 +165,7 @@ Search_Student = function (grid, config) {
         }
         self.closed.push([node.x, node.y]);
     }
+
 
     // Student TODO: Implement this function
     //
@@ -220,7 +215,7 @@ Search_Student = function (grid, config) {
 // The Node class to be used in your search algorithm.
 // This should not need to be modified to complete the assignment
 
-Node = function(x, y, action, parent) {
+NodeX = function(x, y, action, parent) {
     self = {};
     self.x = x;
     self.y = y;

@@ -135,8 +135,11 @@ Search_Student = function (grid, config) {
 
         // Did not find a path
         if (self.open.length == 0) {
-            console.log("NOT FOUND! OPEN LIST EMPTY");
             self.inProgress = false;
+            self.open = [];
+            self.closed = [];
+            self.path = [];
+            self.cost = -1;
             return;
         }
 
@@ -146,9 +149,6 @@ Search_Student = function (grid, config) {
         // Check if we found the goal node
         if (node.x == self.gx && node.y == self.gy) {
 
-            // TODO: Path  is being flipped and returning
-            // through incorrect tiles.
-
             var parents = [];
             parents.push(node);
             var p = node.parent;
@@ -157,17 +157,16 @@ Search_Student = function (grid, config) {
                 p = p.parent;
             }
 
+            // Since self.path is in reference to the start node we
+            // simply start from the start node here and retrace the path.
             var x = 0;
             var y = 0;
             for (var i = parents.length - 1; i > 0; i--) {
-                var x = parents[i].action[0];
-                var y = parents[i].action[1];
+                x = parents[i].action[0];
+                y = parents[i].action[1];
 
                 self.path.push([x, y]);
             }
-
-
-
             self.cost = self.path.length * 100;
 
             self.inProgress = false;

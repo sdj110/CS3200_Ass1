@@ -145,16 +145,30 @@ Search_Student = function (grid, config) {
 
         // Check if we found the goal node
         if (node.x == self.gx && node.y == self.gy) {
-            self.cost = self.path.length * 100;
 
-            self.path.push(node.action);
-            var parent = node.parent;
-            var action = null;
-            while (parent != null)
-            {
-                self.path.push(parent.action);
-                parent = parent.parent;
+            // TODO: Path  is being flipped and returning
+            // through incorrect tiles.
+
+            var parents = [];
+            parents.push(node);
+            var p = node.parent;
+            while (p != null) {
+                parents.push(p);
+                p = p.parent;
             }
+
+            var x = 0;
+            var y = 0;
+            for (var i = parents.length - 1; i > 0; i--) {
+                var x = parents[i].action[0];
+                var y = parents[i].action[1];
+
+                self.path.push([x, y]);
+            }
+
+
+
+            self.cost = self.path.length * 100;
 
             self.inProgress = false;
             return;

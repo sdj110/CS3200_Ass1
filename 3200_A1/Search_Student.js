@@ -29,7 +29,8 @@ Search_Student = function (grid, config) {
     self.closed = [];           // the current closed list of the search
 
     self.startType = -1;
-    self.checkedList = [];
+
+    self.visitedDict = new Object();
 
     // Student TODO: Implement this function
     //
@@ -46,11 +47,14 @@ Search_Student = function (grid, config) {
     //
     // Returns:
     //    bool : whether or not the given action is legal at the given location
-    self.isLegalAction = function (x, y, action, node) {
+    self.isLegalAction = function (x, y, action) {
         // Check that tile types match
         if (self.grid.isOOB(x, y, 1)) { return false; }
         if (self.grid.get(x, y) != self.startType) { return false; }
-
+        if (self.visitedDict[[x, y]] !== undefined) {
+            console.log("NICE");
+            return false;
+        }
         return true;
     }
 
@@ -78,6 +82,8 @@ Search_Student = function (grid, config) {
         self.open = [];
         self.closed = [];
 
+        self.visitedDict = new Object();
+
         // Here we set the start node. This has no tile type restrictions
         self.startType = self.grid.get(sx, sy);
         let startNode = NodeX(sx, sy, [0, 0], null)
@@ -92,8 +98,7 @@ Search_Student = function (grid, config) {
         }
 
         self.open.push(startNode);
-
-        self.checkedList.push(startNode);
+        self.visitedDict[[sx, sy]] = true;
     }
 
     // Student TODO: Implement this function
@@ -168,7 +173,7 @@ Search_Student = function (grid, config) {
                 if (self.isLegalAction(node.x + x, node.y + y, [x, y]))
                 {
                     adjNode = NodeX(node.x + x, node.y + y, [x, y], node);
-                    self.checkedList.push(adjNode);
+                    self.visitedDict[[adjNode.x, adjNode.y]] = true;
                     self.open.push(adjNode);
                 }
             }

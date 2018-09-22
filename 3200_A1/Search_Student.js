@@ -51,10 +51,7 @@ Search_Student = function (grid, config) {
         // Check that tile types match
         if (self.grid.isOOB(x, y, 1)) { return false; }
         if (self.grid.get(x, y) != self.startType) { return false; }
-        if (self.visitedDict[[x, y]] !== undefined) {
-            console.log("NICE");
-            return false;
-        }
+        if (self.visitedDict[[x, y]] !== undefined) { return false; }
         return true;
     }
 
@@ -165,15 +162,20 @@ Search_Student = function (grid, config) {
 
         // Expand
         var adjNode = null;
+        var newX = 0;
+        var newY = 0;
         for (let y = -1; y <= 1; y++) {
             for (let x = -1; x <= 1; x++) {
                 // Skip middle
                 if (x == 0 && y == 0 || x != 0 && y != 0) { continue;}
 
-                if (self.isLegalAction(node.x + x, node.y + y, [x, y]))
+                newX = node.x + x;
+                newY = node.y + y;
+
+                if (self.isLegalAction(newX, newY, [x, y]))
                 {
-                    adjNode = NodeX(node.x + x, node.y + y, [x, y], node);
-                    self.visitedDict[[adjNode.x, adjNode.y]] = true;
+                    adjNode = NodeX(newX, newY, [x, y], node);
+                    self.visitedDict[[newX, newY]] = true;
                     self.open.push(adjNode);
                 }
             }

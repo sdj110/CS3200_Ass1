@@ -85,6 +85,8 @@ Search_Student = function (grid, config) {
         self.startType = self.grid.get(sx, sy);
         let startNode = NodeX(sx, sy, [0, 0], null)
 
+        self.goalType = self.grid.get(gx, gy);
+
         // Do not set the goal if its not the same tile type as start
         // TODO: There might be a better way to do this but right now
         //       this has the same behaviour as solution.
@@ -133,6 +135,16 @@ Search_Student = function (grid, config) {
         // if we've already finished the search, do nothing
         if (!self.inProgress) { return; }
 
+        if (self.startType != self.goalType)
+        {
+            self.inProgress = false;
+            self.open = [];
+            self.closed = [];
+            self.path = [];
+            self.cost = -1;
+            return;
+        }
+
         // Did not find a path
         if (self.open.length == 0) {
             self.inProgress = false;
@@ -148,9 +160,9 @@ Search_Student = function (grid, config) {
 
         // Check if we found the goal node
         if (node.x == self.gx && node.y == self.gy) {
-
             var parents = [];
             parents.push(node);
+
             var p = node.parent;
             while (p != null) {
                 parents.push(p);

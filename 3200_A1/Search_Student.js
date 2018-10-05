@@ -1,59 +1,48 @@
 // Search_Student.js
-// Computer Science 3200 - Assignment 1
-// Author(s): David Churchill, Trei Solis, Scott Jennings
-
-
-// CURRENT PROBELMS:
-// TODO: We need way to check if node has already been visited.
-
+// Computer Science 3200 - Assignment 2
+// Author(s): David Churchill [replace with your name(s)]
+//
+// All of your Assignment code should be in this file, it is the only file submitted.
+// You may create additional functions / member variables within this class, but do not
+// rename any of the existing variables or function names, since they are used by the
+// GUI to perform specific functions.
+//
+// Recommended order of completing the assignment:
+// 1. Construct a function which computes whether a given size agent can fit in given x,y
+//    This will be used by computeSectors / isLegalAction
+// 2. Complete the computeSectors algorithm using 4D BFS as shown in class slides
+// 3. Use results of step 2 to complete the isConnected function, test it with GUI
+// 4. Complete the isLegalAction function, which will be used by searchIteration
+// 5. Complete the startSearch function, which is called before searchIteration
+// 6. Complete the getOpen and getClosed functions, which will help you visualize / debug
+// 7. Complete searchIteration using A* with a heuristic of zero. It should behave like UCS.
+// 8. Implement estimateCost heuristic functions, and use it with A*
+//
+// Please remove these comments before submitting. If you did not get any of the
+// functionality of the assignment to work properly, please explain here in a comment.
 Search_Student = function (grid, config) {
     var self = {};
 
     self.config = config;       // search configuration object
                                 //   config.actions = array of legal [x, y] actions
                                 //   config.actionCosts[i] = cost of config.actions[i]
-                                //   config.strategy = 'bfs' or 'dfs'
-
+                                //   config.heuristic = 'diag', 'card', 'dist', or 'zero'
     self.grid = grid;           // the grid we are using to search
     self.sx = -1;               // x location of the start state
     self.sy = -1;               // y location of the start state
     self.gx = -1;               // x location of the goal state
     self.gy = -1;               // y location of the goal state
-    self.cost = 0;
+    self.size = 1;              // the square side length (size) of the agent
+    self.maxSize = 3;           // the maximum size of an agent
 
-    self.inProgress = false;     // whether the search is in progress
-    self.strategy = 'bfs';      // the strategy used to do the search
+    self.inProgress = false;    // whether the search is in progress
 
     self.path = [];             // the path, if the search found one
     self.open = [];             // the current open list of the search (stores Nodes)
     self.closed = [];           // the current closed list of the search
+    self.cost = 'Search Not Completed'; // the cost of the path found, -1 if no path
 
-    self.startType = -1;
-
-    self.visitedDict = new Object();
-
-    // Student TODO: Implement this function
-    //
-    // This function should compute and return whether or not the given action is able
-    // to be performed from the given (x,y) location
-    //
-    // Args:
-    //    x, y   (int,int) : (x,y) location of the given position
-    //    action [int,int] : the action to be performed, representing the [x,y] movement
-    //                       from this position. for example: [1,0] is move 1 in the x
-    //                       direction and 0 in the y direction (move right). For this
-    //                       assignment, the only action possibilities should be:
-    //                       [1,0], [0,1], [-1,0], [0,-1]
-    //
-    // Returns:
-    //    bool : whether or not the given action is legal at the given location
-    self.isLegalAction = function (x, y, action) {
-        // Check that tile types match
-        if (self.grid.isOOB(x, y, 1)) { return false; }
-        if (self.grid.get(x, y) != self.startType) { return false; }
-        if (self.visitedDict[[x, y]] !== undefined) { return false; }
-        return true;
-    }
+    self.sectors = new Object(); // our sector dictionary
 
     // Student TODO: Implement this function
     //
@@ -62,42 +51,199 @@ Search_Student = function (grid, config) {
     // the open and closed lists, and resetting the path. I have provided a starting point,
     // but it is not complete.
     //
+    // Please note that this is NOT the place to do your connected sector computations. That
+    // should be done ONCE upon object creation in the computeSectors function below.
+    //
     // Args:
     //    sx, sy (int,int) : (x,y) position of the start state
     //    gx, gy (int,int) : (x,y) position of the goal state
-    //    method           : the search method to be used ('dfs' or 'bfs')
+    //    size   (int)     : the size of the agent for this search episode
     //
     // Returns:
     //    none             : this function does not return anything
     //
-    self.startSearch = function(sx, sy, gx, gy) {
+    self.startSearch = function(sx, sy, gx, gy, size) {
+        // deals with an edge-case with the GUI, leave this line here
+        if (sx == -1 || gx == -1) { return; }
+
         self.inProgress = true;     // the search is now considered started
         self.sx = sx;               // set the x,y location of the start state
         self.sy = sy;
-
+        self.gx = gx;               // set the x,y location of the goal state
+        self.gy = gy;
+        self.size = size;           // the size of the agent
         self.path = [];             // set an empty path
-        self.open = [];
-        self.closed = [];
 
-        self.visitedDict = new Object();
+        // TODO: everything else necessary to start a new search
+    }
 
-        // Here we set the start node. This has no tile type restrictions
-        self.startType = self.grid.get(sx, sy);
-        let startNode = NodeX(sx, sy, [0, 0], null)
+    // Student TODO: Implement this function
+    //
+    // This function should compute and return the heuristic function h(n) of a given
+    // start location to a given goal location. This function should return one of
+    // four different values, based on the self.config.heuristic option
+    //
+    // Args:
+    //    x, y   (int,int) : (x,y) location of the given position
+    //    gx, gy (int,int) : (x,y) location of the goal
+    //    size             : the square side length size of the agent
+    //
+    // Returns:
+    //    int              : the computed distance heuristic
+    self.estimateCost = function (x, y, gx, gy) {
+        // compute and return the diagonal manhattan distance heuristic
+        if (self.config.heuristic == 'diag') {
+            return 3;
+        // compute and return the 4 directional (cardinal) manhattan distance
+        } else if (self.config.heuristic == 'card') {
+            return 2;
+        // compute and return the 2D euclidian distance (Pythagorus)
+        } else if (self.config.heuristic == 'dist') {
+            return 1;
+        // return zero heuristic
+        } else if (self.config.heuristic == 'zero') {
+            return 0;
+        }
+    }
 
-        self.goalType = self.grid.get(gx, gy);
+    // Student TODO: Implement this function
+    //
+    // This function should return whether or not the two given locations are connected.
+    // Two locations are connected if a path is possible between them. For this assignment,
+    // keep in mine that 4D connectedness is equivalent to 8D connectedness because you
+    // cannot use a diagonal move to jump over a tile.
+    //
+    // Args:
+    //    x1, y1 (int,int) : (x,y) location 1
+    //    x2, y2 (int,int) : (x,y) location 2
+    //    size             : the square side length size of the agent
+    //
+    // Returns:
+    //    bool              : whether the two locations are connected
+    self.isConnected = function (x1, y1, x2, y2, size) {
+        return true;
+    }
 
-        // Do not set the goal if its not the same tile type as start
-        // TODO: There might be a better way to do this but right now
-        //       this has the same behaviour as solution.
-        if (self.grid.get(gx, gy) == self.startType)
-        {
-            self.gx = gx;
-            self.gy = gy;
+    // Student TODO: Implement this function
+    //
+    // This function should compute and return whether or not the given action is able
+    // to be performed from the given (x,y) location.
+    //
+    // Diagonal moves are only legal if both 2-step cardinal moves are also legal.
+    // For example: Moving diagonal up-right is only legal if you can move both up
+    //              then right, as well as right then up.
+    //
+    // Args:
+    //    x, y   (int,int) : (x,y) location of the given position
+    //    size             : the square side length size of the agent
+    //    action [int,int] : the action to be performed, representing the [x,y] movement
+    //                       from this position. for example: [1,0] is move 1 in the x
+    //                       direction and 0 in the y direction (move right).
+    //
+    // Returns:
+    //    bool : whether or not the given action is legal at the given location
+    self.isLegalAction = function (x, y, size, action) {
+        if (self.checkOOB(x + action[0], y + action[1])) {
+            return false;
+        }
+        if (!self.tilesMatch(x, y, x + action[0], y + action[1])) {
+            return false;
+        }
+        return true;
+    }
+
+    // Student TODO: Implement this function
+    //
+    // This function should compute and store the connected sectors discussed in class.
+    // This function is called by the construct of this object before it is returned.
+    //
+    // Args:
+    //    none
+    //
+    // Returns:
+    //    none
+    self.computeSectors = function() {
+
+        var size = 1;
+        var sector = 0;
+        self.sectors[size] = new Object();
+
+
+        // TODO: HERE WTF IS GOING ON. Certain values for x and y result in TypeError
+        // Try making y bigger or smaller and see!!!!
+        self.generateSector(0, 0, 1, sector);
+
+        for (let y = 0; y < self.grid.height; y++) {
+            for (let x = 0; x < self.grid.width; x++) {
+                if (self.sectors[size][self.stringify([x, y])] !== undefined) { continue; }
+
+                //console.log("Generate Sector around [" + x + "," + y + "]")
+                //sector = self.generateSector(x, y, size, sector);
+            }
+        }
+    }
+
+    self.generateSector = function(x, y, size, sector) {
+        var sectorList = self.BFS(x, y, size);
+
+        for (let i = 0; i < sectorList.length; i++) {
+            self.sectors[size][self.stringify(sectorList[i])] = sector;
         }
 
-        self.open.push(startNode);
-        self.visitedDict[[sx, sy]] = true;
+        console.log("SECTOR: " + sector + "   SIZE: " + sectorList.length);
+        for (let i = 0; i < sectorList.length; i++) {
+            //console.log(self.stringify(sectorList[i]));
+        }
+
+        sector += 1;
+        return sector;
+    }
+
+    self.BFS = function(sx, sy, size) {
+
+        var openList = [];
+        var closedList = [];
+        var startNode = [sx, sy];
+        var startType = self.tileType(sx, sy);
+        var visited = new Object();
+
+        openList.push(startNode);
+        visited[self.stringify(startNode)] = true;
+
+        while (openList.length > 0) {
+            let node = openList.shift();
+            // iterate through actions
+            for (let y = -1; y <= 1; y++) {
+                for (let x = -1; x <= 1; x++) {
+                    if (x == 0 && y == 0 || x != 0 && y != 0) { continue;}
+                    if (visited[self.stringify([node[0] + x, node[1] + y])]) { continue; }
+
+                    if (self.isLegalAction(node[0], node[1], size, [x, y])) {
+                        var adjNode = [node[0] + x, node[1] + y];
+                        visited[self.stringify(adjNode)] = true;
+                        openList.push(adjNode);
+                    }
+                }
+            }
+            closedList.push(node);
+        }
+        return closedList;
+    }
+
+    self.stringify = function (obj) {
+        return JSON.stringify(obj);
+    }
+
+    self.tileType = function (x, y) {
+        return self.grid.get(x, y);
+    }
+
+    self.tilesMatch = function (x1, y1, x2, y2) {
+        return self.tileType(x1, y1) == self.tileType(x2, y2);
+    }
+
+    self.checkOOB = function (x, y, size) {
+        return self.grid.isOOB(x, y, size);
     }
 
     // Student TODO: Implement this function
@@ -113,16 +259,11 @@ Search_Student = function (grid, config) {
     // should correctly set the self.inProgress variable to false once the search has been
     // completed, which is required for the GUI to function correctly.
     //
-    // This function should perform one iteration of breadth-first search (BFS) if the
-    // self.config.strategy variable == 'bfs', or one iteration of depth-first search (DFS) if
-    // the self.config.strategy variable == 'dfs'. There should be a few line(s) of code difference
-    // between the two algorithms.
+    // This function should perform one the A* search algorithm using Graph-Search
+    // The algorithm is located in the Lecture 6 Slides
     //
-    // Tip: You can use a JavaScript array to represent a queue or a stack.
-    //      Array.push(e) pushes an element onto the end of the array.
-    //      You can use Array.pop() to return and remove the last element of the array, simulating a stack.
-    //      You can use Array.shift() to return and remove the first element of the array, simulating a queue
-    //      You may also use your own custom data structure(s) if you wish.
+    // Tip: You can use the included BinaryHeap object as your open list data structure
+    //      You may also use a simple array and search for it for the minimum f-value
     //
     // Args:
     //    none
@@ -135,79 +276,33 @@ Search_Student = function (grid, config) {
         // if we've already finished the search, do nothing
         if (!self.inProgress) { return; }
 
-        if (self.startType != self.goalType)
-        {
-            self.inProgress = false;
-            self.open = [];
-            self.closed = [];
-            self.path = [];
-            self.cost = -1;
+        // we can do a quick check to see if the start and end goals are connected
+        // if they aren't, then we can end the search before it starts
+        // don't bother searching if the start and end points don't have the same type
+        // this code should remain for your assignment
+        if (!self.isConnected(self.sx, self.sy, self.gx, self.gy, self.objectSize)) {
+            self.inProgress = false; // we don't need to search any more
+            self.cost = -1; // no path was possible, so the cost is -1
             return;
         }
 
-        // Did not find a path
-        if (self.open.length == 0) {
-            self.inProgress = false;
-            self.open = [];
-            self.closed = [];
-            self.path = [];
-            self.cost = -1;
-            return;
-        }
+        // Example: For simple demonstration, compute an L-shaped path to the goal
+        // This is just so the GUI shows something when Student code is initially selected
+        // Completely delete all of the following code in this function to write your solution
+        var dx = (self.gx - self.sx) > 0 ? 1 : -1;
+        var dy = (self.gy - self.sy) > 0 ? 1 : -1;
+        for (var x=0; x < Math.abs(self.gx-self.sx); x++) { self.path.push([dx, 0]); }
+        for (var y=0; y < Math.abs(self.gy-self.sy); y++) { self.path.push([0, dy]); }
 
-        // get current node from queue
-        var node = self.open.shift();
+        // we found a path, so set inProgress to false
+        self.inProgress = false;
 
-        // Check if we found the goal node
-        if (node.x == self.gx && node.y == self.gy) {
-            var parents = [];
-            parents.push(node);
+        // set the cost of the path that we found
+        // our sample L-shaped path cost is its length * 100
+        self.cost = self.path.length * 100;
 
-            var p = node.parent;
-            while (p != null) {
-                parents.push(p);
-                p = p.parent;
-            }
-
-            // Since self.path is in reference to the start node we
-            // simply start from the start node here and retrace the path.
-            var x = 0;
-            var y = 0;
-            for (var i = parents.length - 1; i > 0; i--) {
-                x = parents[i].action[0];
-                y = parents[i].action[1];
-
-                self.path.push([x, y]);
-            }
-            self.cost = self.path.length * 100;
-
-            self.inProgress = false;
-            return;
-        }
-
-        // Expand
-        var adjNode = null;
-        var newX = 0;
-        var newY = 0;
-        for (let y = -1; y <= 1; y++) {
-            for (let x = -1; x <= 1; x++) {
-                // Skip middle
-                if (x == 0 && y == 0 || x != 0 && y != 0) { continue;}
-
-                newX = node.x + x;
-                newY = node.y + y;
-
-                if (self.isLegalAction(newX, newY, [x, y]))
-                {
-                    adjNode = NodeX(newX, newY, [x, y], node);
-                    self.visitedDict[[newX, newY]] = true;
-                    self.open.push(adjNode);
-                }
-            }
-        }
-        self.closed.push([node.x, node.y]);
+        // if the search ended and no path was found, set self.cost = -1
     }
-
 
     // Student TODO: Implement this function
     //
@@ -222,12 +317,7 @@ Search_Student = function (grid, config) {
     //    openList : an array of unique [x, y] states that are currently on the open list
     //
     self.getOpen = function() {
-        let arr = [];
-        for (var i = 0; i < self.open.length; i++)
-        {
-            arr.push([self.open[i].x, self.open[i].y]);
-        }
-        return arr;
+        return [];
     }
 
     // Student TODO: Implement this function
@@ -243,25 +333,9 @@ Search_Student = function (grid, config) {
     //    closedList : an array of unique [x, y] states that are currently on the closed list
     //
     self.getClosed = function() {
-        let arr = [];
-        for (var i = 0; i < self.closed.length; i++)
-        {
-            arr.push([self.closed[i][0], self.closed[i][1]]);
-        }
-        return arr;
+        return [];
     }
 
-    return self;
-}
-
-// The Node class to be used in your search algorithm.
-// This should not need to be modified to complete the assignment
-
-NodeX = function(x, y, action, parent) {
-    self = {};
-    self.x = x;
-    self.y = y;
-    self.action = action;
-    self.parent = parent;
+    self.computeSectors();
     return self;
 }

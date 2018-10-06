@@ -20,6 +20,16 @@
 //
 // Please remove these comments before submitting. If you did not get any of the
 // functionality of the assignment to work properly, please explain here in a comment.
+
+
+
+// NOTE: When trying to computer sector for lower right side of screen we are getting
+//      some strange TypeError. Most sectors are being computed correctly but I will continue
+//      working on this problem tomorrow.
+
+
+
+
 Search_Student = function (grid, config) {
     var self = {};
 
@@ -121,7 +131,7 @@ Search_Student = function (grid, config) {
     // Returns:
     //    bool              : whether the two locations are connected
     self.isConnected = function (x1, y1, x2, y2, size) {
-        return true;
+        return self.sectors[size][self.stringify([x1, y1])] == self.sectors[size][self.stringify([x2, y2])]
     }
 
     // Student TODO: Implement this function
@@ -165,13 +175,33 @@ Search_Student = function (grid, config) {
     self.computeSectors = function() {
 
         var size = 1;
-        var sector = 0;
+        var sector = 1;
         self.sectors[size] = new Object();
 
 
         // TODO: HERE WTF IS GOING ON. Certain values for x and y result in TypeError
         // Try making y bigger or smaller and see!!!!
-        self.generateSector(0, 0, 1, sector);
+        //sector = self.generateSector(0, 0, 1, sector);
+        sector = self.generateSector(0, 0, 1, sector);
+        sector = self.generateSector(0, 22, 1, sector);
+        sector = self.generateSector(16, 32, 1, sector);
+        sector = self.generateSector(18, 17, 1, sector);
+        sector = self.generateSector(9, 54, 1, sector);
+        sector = self.generateSector(40, 40, 1, sector);
+        sector = self.generateSector(55, 3, 1, sector);
+        sector = self.generateSector(9, 7, 1, sector);
+        sector = self.generateSector(31, 39, 1, sector);
+        sector = self.generateSector(40, 26, 1, sector);
+        sector = self.generateSector(61, 62, 1, sector);
+
+
+
+
+        //sector = self.generateSector(14, 10, 1, sector);
+
+
+
+
 
         for (let y = 0; y < self.grid.height; y++) {
             for (let x = 0; x < self.grid.width; x++) {
